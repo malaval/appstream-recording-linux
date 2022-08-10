@@ -1,0 +1,24 @@
+{
+     "SessionStart": {
+          "Executables": [
+               {
+                    "Context": "system",
+                    "Filename": "/opt/appstream/SessionScripts/system-start.sh",
+                    "Arguments": "",
+                    "S3LogEnabled": true
+               }
+          ],
+          "WaitingTime": 60
+     },
+     "SessionTermination": {
+          "Executables": [
+               {
+                    "Context": "system",
+                    "Filename": "/opt/appstream/SessionScripts/system-stop.sh",
+                    "Arguments": "",
+                    "S3LogEnabled": true
+               }
+          ],
+          "WaitingTime": 30
+     }
+}
