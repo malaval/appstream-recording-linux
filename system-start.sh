@@ -8,21 +8,21 @@ COUNTER=0
 echo "Waiting until the AppStream 2.0 session is ready"
 while [ -z "$APPSTREAM_USERNAME" ] || [ -z "$DISPLAY" ]; do
 
-	# List the active user sessions that run gnome
+	# List the active user sessions that run GNOME
 	W_OUTPUT=$(PROCPS_USERLEN=30 w -h | grep gnome | grep -v grep)
 
-	# Retrieve the username of the AS2 Linux userand the display number used by
+	# Retrieve the username of the AS2 Linux user and the display number used by
 	# the X server. These values are currently "as2-streaming-user" and ":0".
 	# I retrieve them dynamically, altough I don't expect them to change in the future.
 	APPSTREAM_USERNAME=$(echo $W_OUTPUT | awk '{print $1}')
 	DISPLAY=$(echo $W_OUTPUT | awk '{print $3}')
 
-	# Wait for maximum 15 seconds
+	# Wait maximum 15 seconds for the session to start
 	if [ $COUNTER -eq 15 ]; then
 		exit 1
 	fi
 
-	# Wait one second if the session is not yet ready
+	# Wait one second if the session is not yet ready until the next iteration
 	let COUNTER=COUNTER+1
 	sleep 1
 
