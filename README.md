@@ -31,32 +31,32 @@ cd ..
 rm -rf session-manager-plugin
 ```
 
-We wait until the streaming user session is active, i.e. when there is an active Linux session running GNOME. We retrieve dynamically the name of the Linux user used by AppStream 2.0 users, and the X server (Linux display server) to record, although I don't except these values to change in the future.
+We wait until the streaming user session is active, i.e. when there is an active Linux session running GNOME. We retrieve dynamically the name of the Linux user used by the AppStream 2.0 user (currently `as2-streaming-user`) and the X server (Linux display server) to record (currently `:0`) although I don't except these values to change in the future.
 
 ```
 COUNTER=0
 echo "Waiting until the AppStream 2.0 session is ready"
 while [ -z "$APPSTREAM_USERNAME" ] || [ -z "$DISPLAY" ]; do
 
-	# List the active user sessions that run gnome
+	# List the active user sessions that run GNOME
 	W_OUTPUT=$(PROCPS_USERLEN=30 w -h | grep gnome | grep -v grep)
 
 	APPSTREAM_USERNAME=$(echo $W_OUTPUT | awk '{print $1}')
 	DISPLAY=$(echo $W_OUTPUT | awk '{print $3}')
 
-	# Wait for maximum 15 seconds
+	# Wait maximum 15 seconds for the session to start
 	if [ $COUNTER -eq 15 ]; then
 		exit 1
 	fi
 
-	# Wait one second if the session is not yet ready
+	# Wait one second if the session is not yet ready until the next iteration
 	let COUNTER=COUNTER+1
 	sleep 1
 
 done
 ```
 
-We share the X server executed by the AppStream 2.0 user with the root user, so that the root user can run FFmpeg and record the session screen. By running FFmpeg as root, AppStream 2.0 users are prevented from stopping or tampering with the solution, as long as they aren’t granted local administrator rights.
+We share the X server executed by the AppStream 2.0 user with the root user, so that the root user can run FFmpeg and record the session screen. By running FFmpeg as root, the AppStream 2.0 user is prevented from stopping or tampering with the solution, as long as it isn’t granted local administrator rights.
 
 ```
 echo "Sharing display $DISPLAY owned by $APPSTREAM_USERNAME with root"
@@ -72,7 +72,7 @@ nohup /opt/appstream/SessionScripts/long-running.sh > /root/long-running.log $DI
 
 ### During the streaming session (`long-running.sh`)
 
-AppStream 2.0 provides [metadata about users, sessions, and instances](https://docs.aws.amazon.com/appstream2/latest/developerguide/customize-fleets.html#customize-fleets-user-instance-metadata) in a file that can be loaded with `source`. The script writes the metadata to a text file and uploads it to Amazon S3. We include the system operator's username, and the session ID in the S3 prefix, so that you can easily find all recordings.
+AppStream 2.0 provides [metadata about users, sessions, and instances](https://docs.aws.amazon.com/appstream2/latest/developerguide/customize-fleets.html#customize-fleets-user-instance-metadata) in a file with environment variables that can be loaded with `source`. The script writes the metadata to a text file and uploads it to Amazon S3. We include the date, the system operator's username, and the session ID in the S3 prefix, so that you can easily find recordings.
 
 ```
 source /opt/appstream/SessionScripts/variables.sh
@@ -150,7 +150,7 @@ done
 
 During each loop iteration, these actions happen:
 
-* The script launches FFmpeg if no FFmpeg process exists, or if it has exited. We configure FFmpeg to capture FRAME_RATE frames per second, and to produce one video file every VIDEO_MAX_DURATION seconds whose name contains the time when the recording started. The default value are, respectively, 5 frames per second and 300 seconds. You can adapt these values to your own needs.
+* The script launches FFmpeg if no FFmpeg process exists, or if it has exited. We configure FFmpeg to capture FRAME_RATE frames per second, and to produce one video file every VIDEO_MAX_DURATION seconds. The default value are, respectively, 5 frames per second and 300 seconds. You can adapt these values to your own needs. The file name is `video-{N}.mp4` with the `{N}` the index of the video file.
 
 ```
 start_recording() {
@@ -172,7 +172,7 @@ start_recording() {
 }
 ```
 
-* We check whether the number of screens or the screen resolution changed. When FFmpeg starts recording, it captures the area covered by the desktop at that time. If the resolution changes, a portion of the desktop might be outside the recorded region. In that case, we stop FFmpeg by sending a SIGTERM signal. FFmpeg will be restarted during the next loop iteration.
+* We check whether the screen resolution changed. When FFmpeg starts recording, it captures the area covered by the desktop at that time. If the resolution changes, a portion of the desktop might be outside the recorded region. In that case, we stop FFmpeg by sending a SIGTERM signal. FFmpeg will be restarted during the next loop iteration.
 
 ```
 stop_recording() {
@@ -183,7 +183,7 @@ stop_recording() {
 }
 ```
 
-* The script uploads the video files that exist in the local disk, except the video file that is being written by the current FFmpeg process. Once the upload succeeds, we remove the video files from the local disk.
+* The script uploads the video files that exist in the local disk to S3, except the video file that is being written by the current FFmpeg process. Once the upload succeeds, we remove the video files from the local disk.
 
 ```
 upload_videos_to_s3() {
@@ -217,7 +217,7 @@ while ps -p $LR_PID > /dev/null; do
 done
 ```
 
-The second script catches the signal and exits gracefully, i.e. it closes FFmpeg and waits for the last video to be uploaded.
+The second script catches the signal and exits gracefully, i.e. it closes FFmpeg and it uploads the last video to S3.
 
 ```
 trap catch_signal SIGTERM
