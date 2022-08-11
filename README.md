@@ -1,6 +1,8 @@
 # Record a video of the Amazon Linux 2 streaming instances screen in AppStream 2.0
 
-These scripts let you record a video of the Amazon Linux 2 streaming instances screen in AppStream 2.0 using [FFmpeg](https://ffmpeg.org/). For more information, see the original AWS Security Blog Post [How to record a video of Amazon AppStream 2.0 streaming sessions](https://aws.amazon.com/fr/blogs/security/how-to-record-video-of-amazon-appstream-2-0-streaming-sessions/) for Windows streaming instances, and the more recent Medium blog post [How to record system operator activities on AWS using Amazon AppStream 2.0 and Session Manager](https://medium.com/@malavaln/762216cd66f0).
+These scripts let you record a video of the Amazon Linux 2 streaming instances screen in AppStream 2.0 using [FFmpeg](https://ffmpeg.org/). Refer to the recent Medium blog post [How to record system operator activities on AWS using Amazon AppStream 2.0 and Session Manager](https://medium.com/@malavaln/how-to-record-system-operator-activities-on-aws-using-amazon-appstream-2-0-and-session-manager-762216cd66f0) for instructions about how to deploy this solution.
+
+You can also refer to the original AWS Security Blog Post [How to record a video of Amazon AppStream 2.0 streaming sessions](https://aws.amazon.com/fr/blogs/security/how-to-record-video-of-amazon-appstream-2-0-streaming-sessions/) for Windows streaming instances.
 
 ## The solution scripts
 
